@@ -1,7 +1,7 @@
 name:
   belka
 version:
-  0.1
+  0.1.1
 homepage:
   https://github.com/nikita-volkov/belka
 bug-reports:
@@ -49,7 +49,7 @@ library
     base64-bytestring ==1.*,
     json-bytes-builder >=0.5 && <0.6,
     -- streaming:
-    potoki >=0.4.4 && <0.5,
+    potoki >=0.5 && <0.6,
     -- parsing:
     aeson-value-parser >=0.12.2 && <0.13,
     attoparsec >=0.13 && <0.14,

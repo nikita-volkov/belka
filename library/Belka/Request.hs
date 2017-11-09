@@ -87,7 +87,7 @@ produceBody produce =
   request { A.requestBody = A.RequestBodyStreamChunked givesPopper }
   where
     givesPopper takesPopper =
-      takesPopper (D.produce produce (pure mempty) pure)
+      takesPopper (D.produce produce mempty id)
 
 buildBody :: F.Builder -> Request
 buildBody builder =

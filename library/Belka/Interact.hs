@@ -26,9 +26,9 @@ request (B.Request (Endo httpRequest)) (C.ParseHead (ExceptT (ReaderT parseRespo
       Right (D.ParseBody (Compose consumeBody)) ->
         E.consume
           (let fetchChunk = A.responseBody response
-            in \ stop emit -> do
+            in \ end element -> do
               chunk <- fetchChunk
-              if F.null chunk
-                then stop
-                else emit chunk)
+              return $ if F.null chunk
+                then end
+                else element chunk)
           (fmap (either Left (Right . Right)) consumeBody)
