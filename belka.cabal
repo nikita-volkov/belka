@@ -1,7 +1,7 @@
 name:
   belka
 version:
-  0.1.1
+  0.1.2
 homepage:
   https://github.com/nikita-volkov/belka
 bug-reports:
@@ -53,7 +53,7 @@ library
     -- parsing:
     aeson-value-parser >=0.12.2 && <0.13,
     attoparsec >=0.13 && <0.14,
-    http-media >=0.6.4 && <0.7,
+    http-media >=0.6.4 && <0.8,
     -- 
     http-client ==0.5.*,
     http-client-tls >=0.3.4 && <0.4,
