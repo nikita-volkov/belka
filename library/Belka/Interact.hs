@@ -15,20 +15,24 @@ newtype Interact a =
   deriving (Functor, Applicative, Monad, MonadIO)
 
 request :: B.Request -> C.ParseHead (D.ParseBody body) -> Interact body
-request (B.Request (Endo httpRequest)) (C.ParseHead (ExceptT (ReaderT parseResponseHeadIO))) =
+request (B.Request requestIO) (C.ParseHead (ExceptT (ReaderT parseResponseHeadIO))) =
   Interact $ ExceptT $ ExceptT $ ReaderT $ \ manager ->
   handle (\ e -> return (Right (Left e))) $
-  A.withResponse (httpRequest A.defaultRequest) manager $ \ response ->
   do
-    parsedHead <- parseResponseHeadIO response
-    case parsedHead of
-      Left parsingError -> return (Left parsingError)
-      Right (D.ParseBody (Compose consumeBody)) ->
-        E.consume
-          (let fetchChunk = A.responseBody response
-            in \ end element -> do
-              chunk <- fetchChunk
-              return $ if F.null chunk
-                then end
-                else element chunk)
-          (fmap (either Left (Right . Right)) consumeBody)
+    (hcRequest, requestCleanUp) <- requestIO A.defaultRequest
+    result <-
+      A.withResponse hcRequest manager $ \ response -> do
+        parsedHead <- parseResponseHeadIO response
+        case parsedHead of
+          Left parsingError -> return (Left parsingError)
+          Right (D.ParseBody (Compose consumeBody)) ->
+            E.consume
+              (let fetchChunk = A.responseBody response
+                in \ end element -> do
+                  chunk <- fetchChunk
+                  return $ if F.null chunk
+                    then end
+                    else element chunk)
+              (fmap (either Left (Right . Right)) consumeBody)
+    requestCleanUp
+    return result
