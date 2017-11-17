@@ -21,11 +21,9 @@ main =
   [
     testCase "Erroneous response" $ do
       result <-
-        fmap
-          (either Left (either (Left . fromString . show) Right))
-          (A.interactUsingGlobalManager
-            (B.request 1000
-              (C.setIri (either ($bug "") id (E.url "http://user:password@localhost:993")))
-              (pure (fmap (const ()) D.json))))
+        (A.interactUsingGlobalManager
+          (B.request 1000
+            (C.setIri (either ($bug "") id (E.url "http://user:password@localhost:993")))
+            (pure (fmap (const ()) D.json))))
       assertBool "" (isLeft result)
   ]
