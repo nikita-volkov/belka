@@ -24,3 +24,8 @@ json =
 parseJson :: G.Value json -> ParseBody json
 parseJson jsonParser =
   consume (H.parseJson jsonParser)
+
+{-| Useful for debugging -}
+print :: ParseBody ()
+print =
+  consume (fmap Right F.printBytes)
