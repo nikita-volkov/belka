@@ -12,6 +12,7 @@ import qualified Belka.IO as A
 import qualified Belka.Interact as B
 import qualified Belka.Request as C
 import qualified Belka.ParseBody as D
+import qualified Iri.Parsing.ByteString as E
 
 
 main =
@@ -24,7 +25,7 @@ main =
           (either Left (either (Left . fromString . show) Right))
           (A.interactUsingGlobalManager
             (B.request
-              (C.setUrlUnsafe "http://localhost:993")
+              (C.setIri (either ($bug "") id (E.url "http://user:password@localhost:993")))
               (pure (fmap (const ()) D.json))))
       assertBool "" (isLeft result)
   ]

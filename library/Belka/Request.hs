@@ -10,8 +10,14 @@ import qualified Potoki.Core.Fetch as I
 import qualified Potoki.IO as D
 import qualified JSONBytesBuilder.Builder as E
 import qualified JSONBytesBuilder.ByteString.Builder as G
+import qualified Data.ByteString as L
 import qualified Data.ByteString.Builder as F
 import qualified Data.Text as H
+import qualified Iri.Data as J
+import qualified Iri.Rendering.Ptr.Poking.Ascii as K
+import qualified Ptr.Poking as M
+import qualified Ptr.ByteString as O
+import qualified Belka.Poking as P
 
 
 newtype Request =
@@ -50,6 +56,10 @@ setContentTypeHeader :: ByteString -> Request
 setContentTypeHeader value =
   setHeader "content-type" value
 
+setBasicAuthHeader :: Text -> Text -> Request
+setBasicAuthHeader user password =
+  setHeader "authorization" (O.poking (P.basicAuth user password))
+
 setAcceptHeaderToJson :: Request
 setAcceptHeaderToJson =
   setAcceptHeader "application/json"
@@ -58,22 +68,40 @@ setContentTypeHeaderToJson :: Request
 setContentTypeHeaderToJson =
   setContentTypeHeader "application/json"
 
-setUrl :: Text -> Maybe Request
-setUrl url =
-  do
-    parsedRequest <- A.parseRequest (H.unpack url)
-    return $ endo $ \ request ->
-      request {
-        A.secure = A.secure parsedRequest,
-        A.host = A.host parsedRequest,
-        A.port = A.port parsedRequest,
-        A.path = A.path parsedRequest,
-        A.queryString = A.queryString parsedRequest
-      }
-
-setUrlUnsafe :: Text -> Request
-setUrlUnsafe url =
-  fromMaybe (error ("Invalid URL: " <> show url)) (setUrl url)
+setIri :: Iri -> Request
+setIri (J.Iri scheme authority host port path query fragment) =
+  setPathsAndStuff <> setHeaders
+  where
+    setPathsAndStuff =
+      endo $ \ request ->
+        request {
+          A.secure = secure,
+          A.host = preparedHost,
+          A.port = preparedPort,
+          A.path = preparedPath,
+          A.queryString = preparedQuery
+        }
+      where
+        secure =
+          scheme == J.Scheme "https"
+        preparedHost =
+          O.poking (K.host host)
+        preparedPort =
+          case port of
+            J.PresentPort value -> fromIntegral value
+            J.MissingPort -> if secure then 443 else 80
+        preparedPath =
+          O.poking (M.asciiChar '/' <> K.path path)
+        preparedQuery =
+          O.poking $
+          case K.query query of
+            query -> if M.null query then mempty else M.asciiChar '?' <> query
+    setHeaders =
+      case authority of
+        J.PresentAuthority (J.User user) password -> case password of
+          J.PresentPassword password -> setBasicAuthHeader user password
+          J.MissingPassword -> setBasicAuthHeader user ""
+        J.MissingAuthority -> mempty
 
 setMethod :: ByteString -> Request
 setMethod method =

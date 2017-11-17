@@ -51,6 +51,10 @@ import Data.Text as Exports (Text)
 -------------------------
 import Data.Hashable as Exports
 
+-- iri
+-------------------------
+import Iri.Data as Exports (Iri)
+
 -- bug
 -------------------------
 import Bug as Exports
