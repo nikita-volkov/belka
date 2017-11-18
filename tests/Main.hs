@@ -22,7 +22,7 @@ main =
     testCase "Erroneous response" $ do
       result <-
         (A.interactUsingGlobalManager
-          (B.request 1000
+          (B.request
             (C.setIri (either ($bug "") id (E.url "http://user:password@localhost:993")))
             (pure (fmap (const ()) D.json))))
       assertBool "" (isLeft result)

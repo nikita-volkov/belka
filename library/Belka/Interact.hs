@@ -14,13 +14,12 @@ newtype Interact a =
   Interact (ExceptT Text (ReaderT A.Manager IO) a)
   deriving (Functor, Applicative, Monad, MonadIO)
 
-request :: Int {-^ Response timeout in milliseconds -} -> B.Request -> C.ParseHead (D.ParseBody body) -> Interact body
-request timeout (B.Request requestIO) (C.ParseHead (ExceptT (ReaderT parseResponseHeadIO))) =
+request :: B.Request -> C.ParseHead (D.ParseBody body) -> Interact body
+request (B.Request requestIO) (C.ParseHead (ExceptT (ReaderT parseResponseHeadIO))) =
   Interact $ ExceptT $ ReaderT $ \ manager ->
   handle (return . Left . httpExceptionMapping) $
   do
     (hcRequest, requestCleanUp) <- requestIO A.defaultRequest
-    hcRequest <- return $ hcRequest {A.responseTimeout = A.responseTimeoutMicro (timeout * 1000)}
     result <-
       A.withResponse hcRequest manager $ \ response -> do
         parsedHead <- parseResponseHeadIO response

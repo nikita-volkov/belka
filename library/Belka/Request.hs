@@ -42,6 +42,11 @@ endo :: (A.Request -> A.Request) -> Request
 endo endo =
   Request $ \ hcRequest -> return (endo hcRequest, return ())
 
+{-| Set timeout in millis -}
+setTimeout :: Int -> Request
+setTimeout timeout =
+  endo (\ x -> x {A.responseTimeout = A.responseTimeoutMicro (timeout * 1000)})
+
 setHeader :: ByteString -> ByteString -> Request
 setHeader name value =
   endo (\ x -> x {A.requestHeaders = newHeaders (A.requestHeaders x)})
