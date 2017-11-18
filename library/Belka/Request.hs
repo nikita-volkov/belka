@@ -20,6 +20,7 @@ import qualified Ptr.ByteString as O
 import qualified Belka.Poking as P
 
 
+{-| Composable settings of an HTTP request -}
 newtype Request =
   Request (A.Request -> IO (A.Request, IO ()))
 
