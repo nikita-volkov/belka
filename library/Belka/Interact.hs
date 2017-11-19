@@ -11,13 +11,13 @@ import qualified Data.ByteString as F
 
 
 newtype Interact a =
-  Interact (ExceptT Text (ReaderT A.Manager IO) a)
+  Interact (ExceptT IOException (ExceptT Text (ReaderT A.Manager IO)) a)
   deriving (Functor, Applicative, Monad, MonadIO)
 
 request :: B.Request -> C.ParseHead (D.ParseBody body) -> Interact body
 request (B.Request requestIO) (C.ParseHead (ExceptT (ReaderT parseResponseHeadIO))) =
-  Interact $ ExceptT $ ReaderT $ \ manager ->
-  handle (return . Left . httpExceptionMapping) $
+  Interact $ ExceptT $ ExceptT $ ReaderT $ \ manager ->
+  handle (return . httpExceptionMapping) $
   do
     (hcRequest, requestCleanUp) <- requestIO A.defaultRequest
     result <-
@@ -33,11 +33,17 @@ request (B.Request requestIO) (C.ParseHead (ExceptT (ReaderT parseResponseHeadIO
                   return $ if F.null chunk
                     then end
                     else element chunk)
-              (fmap (either (Left . mappend "Body parsing: ") (Right)) consumeBody)
+              (fmap (either (Left . mappend "Body parsing: ") (Right . Right)) consumeBody)
     requestCleanUp
     return result
   where
     httpExceptionMapping =
       \ case
-        A.HttpExceptionRequest _ contents -> fromString (showString "HTTP exception: " (show contents))
-        A.InvalidUrlException url message -> fromString (showString "Invalid URL: " (showString url (showString ": " message)))
+        A.HttpExceptionRequest _ (A.ConnectionFailure someException) | Just ioException <- fromException someException ->
+          Right (Left ioException)
+        A.HttpExceptionRequest _ (A.InternalException someException) | Just ioException <- fromException someException ->
+          Right (Left ioException)
+        A.HttpExceptionRequest _ contents ->
+          Left (fromString (showString "HTTP exception: " (show contents)))
+        A.InvalidUrlException url message ->
+          Left (fromString (showString "Invalid URL: " (showString url (showString ": " message))))

@@ -8,17 +8,17 @@ import qualified Belka.Interact as D
 import qualified Potoki.IO as E
 
 
-interact :: A.Manager -> D.Interact a -> IO (Either Text a)
+interact :: A.Manager -> D.Interact a -> IO (Either Text (Either IOException a))
 interact manager (D.Interact interactIO) =
-  runReaderT (runExceptT interactIO) manager
+  runReaderT (runExceptT (runExceptT interactIO)) manager
 
-interactUsingNewManager :: D.Interact a -> IO (Either Text a)
+interactUsingNewManager :: D.Interact a -> IO (Either Text (Either IOException a))
 interactUsingNewManager interact_ =
   do
     manager <- B.newTlsManager
     interact manager interact_
 
-interactUsingGlobalManager :: D.Interact a -> IO (Either Text a)
+interactUsingGlobalManager :: D.Interact a -> IO (Either Text (Either IOException a))
 interactUsingGlobalManager interact_ =
   do
     manager <- B.getGlobalManager
