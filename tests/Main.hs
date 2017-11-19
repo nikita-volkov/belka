@@ -12,7 +12,7 @@ import qualified Belka.IO as A
 import qualified Belka.Interact as B
 import qualified Belka.Request as C
 import qualified Belka.ParseBody as D
-import qualified Iri.Parsing.ByteString as E
+import qualified Iri.QuasiQuoter as E
 
 
 main =
@@ -23,7 +23,7 @@ main =
       result <-
         (A.interactUsingGlobalManager
           (B.request
-            (C.setIri (either ($bug "") id (E.url "http://user:password@localhost:993")))
+            (C.setIri [E.url|http://user:password@localhost:993|])
             (pure (fmap (const ()) D.json))))
       assertBool "" (isLeft result)
   ]
