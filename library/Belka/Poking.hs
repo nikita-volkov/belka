@@ -4,7 +4,7 @@ where
 import Belka.Prelude
 import Ptr.Poking
 import qualified Iri.Data as J
-import qualified Iri.Rendering.Ptr.Poking.Ascii as K
+import qualified Iri.Rendering.Ptr.Poking as K
 import qualified Ptr.ByteString as O
 import qualified Data.ByteString.Base64 as A
 import qualified Data.Text.Encoding as B

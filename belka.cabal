@@ -62,7 +62,7 @@ library
     http-client-tls >=0.3.4 && <0.4,
     http-types ==0.9.*,
     -- 
-    iri >=0.1 && <0.2,
+    iri >=0.2 && <0.3,
     aeson >=1.2 && <2,
     bytestring >=0.10 && <0.11,
     text >=1 && <2,

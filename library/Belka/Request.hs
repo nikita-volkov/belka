@@ -14,7 +14,7 @@ import qualified Data.ByteString as L
 import qualified Data.ByteString.Builder as F
 import qualified Data.Text as H
 import qualified Iri.Data as J
-import qualified Iri.Rendering.Ptr.Poking.Ascii as K
+import qualified Iri.Rendering.Ptr.Poking as K
 import qualified Ptr.Poking as M
 import qualified Ptr.ByteString as O
 import qualified Belka.Poking as P
@@ -74,40 +74,29 @@ setContentTypeHeaderToJson :: Request
 setContentTypeHeaderToJson =
   setContentTypeHeader "application/json"
 
-setIri :: Iri -> Request
-setIri (J.Iri scheme authority host port path query fragment) =
-  setPathsAndStuff <> setHeaders
+setIri :: J.HttpIri -> Request
+setIri (J.HttpIri (J.Security secure) host port path query fragment) =
+  endo $ \ request ->
+    request {
+      A.secure = secure,
+      A.host = preparedHost,
+      A.port = preparedPort,
+      A.path = preparedPath,
+      A.queryString = preparedQuery
+    }
   where
-    setPathsAndStuff =
-      endo $ \ request ->
-        request {
-          A.secure = secure,
-          A.host = preparedHost,
-          A.port = preparedPort,
-          A.path = preparedPath,
-          A.queryString = preparedQuery
-        }
-      where
-        secure =
-          scheme == J.Scheme "https"
-        preparedHost =
-          O.poking (K.host host)
-        preparedPort =
-          case port of
-            J.PresentPort value -> fromIntegral value
-            J.MissingPort -> if secure then 443 else 80
-        preparedPath =
-          O.poking (M.asciiChar '/' <> K.path path)
-        preparedQuery =
-          O.poking $
-          case K.query query of
-            query -> if M.null query then mempty else M.asciiChar '?' <> query
-    setHeaders =
-      case authority of
-        J.PresentAuthority (J.User user) password -> case password of
-          J.PresentPassword password -> setBasicAuthHeader user password
-          J.MissingPassword -> setBasicAuthHeader user ""
-        J.MissingAuthority -> mempty
+    preparedHost =
+      O.poking (K.host host)
+    preparedPort =
+      case port of
+        J.PresentPort value -> fromIntegral value
+        J.MissingPort -> if secure then 443 else 80
+    preparedPath =
+      O.poking (M.asciiChar '/' <> K.path path)
+    preparedQuery =
+      O.poking $
+      case K.query query of
+        query -> if M.null query then mempty else M.asciiChar '?' <> query
 
 setMethod :: ByteString -> Request
 setMethod method =

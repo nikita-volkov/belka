@@ -25,7 +25,7 @@ main =
           (either Left (either (Left . fromString . show) Right))
           (A.interactUsingGlobalManager
             (B.request
-              (C.setIri [E.url|http://user:password@localhost:993|])
+              (C.setIri [E.httpUri|http://localhost:993|])
               (pure (fmap (const ()) D.json))))
       assertBool "" (isLeft result)
   ]
