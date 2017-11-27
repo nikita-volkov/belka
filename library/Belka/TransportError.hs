@@ -7,14 +7,14 @@ import qualified Network.HTTP.Client as A
 
 data TransportError =
   TimeoutTransportError |
-  ConnectionError IOErrorType |
-  UnclassifiedError A.HttpException
+  ConnectionTransportError IOErrorType |
+  UnclassifiedTransportError A.HttpException
   deriving (Show)
 
 someException :: TransportError -> SomeException -> TransportError
 someException alternative someException =
   case fromException someException of
-    Just ioException -> ConnectionError (ioeGetErrorType ioException)
+    Just ioException -> ConnectionTransportError (ioeGetErrorType ioException)
     Nothing -> alternative
 
 httpException :: A.HttpException -> TransportError
@@ -27,10 +27,10 @@ httpException httpException =
         A.ConnectionTimeout ->
           TimeoutTransportError
         A.ConnectionFailure x ->
-          someException (UnclassifiedError httpException) x
+          someException (UnclassifiedTransportError httpException) x
         A.InternalException x ->
-          someException (UnclassifiedError httpException) x
+          someException (UnclassifiedTransportError httpException) x
         _ ->
-          UnclassifiedError httpException
+          UnclassifiedTransportError httpException
     _ ->
-      UnclassifiedError httpException
+      UnclassifiedTransportError httpException
