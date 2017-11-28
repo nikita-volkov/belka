@@ -58,6 +58,10 @@ setAcceptHeader :: ByteString -> Request
 setAcceptHeader value =
   setHeader "accept" value
 
+setAcceptLanguageHeader :: ByteString -> Request
+setAcceptLanguageHeader =
+  setHeader "accept-language"
+
 setContentTypeHeader :: ByteString -> Request
 setContentTypeHeader value =
   setHeader "content-type" value
@@ -70,9 +74,17 @@ setAcceptHeaderToJson :: Request
 setAcceptHeaderToJson =
   setAcceptHeader "application/json"
 
+setAcceptHeaderToHtml :: Request
+setAcceptHeaderToHtml =
+  setAcceptHeader "text/html"
+
 setContentTypeHeaderToJson :: Request
 setContentTypeHeaderToJson =
   setContentTypeHeader "application/json"
+
+setUserAgentHeader :: ByteString -> Request
+setUserAgentHeader =
+  setHeader "user-agent"
 
 setIri :: J.HttpIri -> Request
 setIri (J.HttpIri (J.Security secure) host port path query fragment) =
