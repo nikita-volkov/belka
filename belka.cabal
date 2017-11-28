@@ -37,6 +37,7 @@ library
     Belka.ParseHeaders
     Belka.Interact
     Belka.IO
+    Belka.Potoki.Transform
   other-modules:
     Belka.Potoki.Consume
     Belka.Poking
