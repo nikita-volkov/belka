@@ -3,7 +3,7 @@ where
 
 import Belka.Prelude
 import qualified Belka.ParseHeaders as E
-import qualified Belka.Potoki.Consumers as H
+import qualified Belka.Potoki.Consume as H
 import qualified Potoki.Consume as F
 import qualified Aeson.ValueParser as G
 import qualified Data.Aeson as I

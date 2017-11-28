@@ -38,7 +38,7 @@ library
     Belka.Interact
     Belka.IO
   other-modules:
-    Belka.Potoki.Consumers
+    Belka.Potoki.Consume
     Belka.Poking
     Belka.TransportError
     Belka.Prelude

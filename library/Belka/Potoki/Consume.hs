@@ -1,4 +1,4 @@
-module Belka.Potoki.Consumers
+module Belka.Potoki.Consume
 where
 
 import Belka.Prelude

@@ -7,7 +7,7 @@ import qualified Data.HashMap.Strict as D
 import qualified Network.HTTP.Client as A
 import qualified Network.HTTP.Types as C
 import qualified Belka.ParseHeaders as E
-import qualified Belka.Potoki.Consumers as H
+import qualified Belka.Potoki.Consume as H
 import qualified Potoki.Consume as F
 import qualified Aeson.ValueParser as G
 
