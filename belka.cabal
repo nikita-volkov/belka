@@ -40,7 +40,7 @@ library
     Belka.Potoki.Transform
   other-modules:
     Belka.Potoki.Consume
-    Belka.Poking
+    Belka.Ptr.Poking
     Belka.TransportError
     Belka.Prelude
   default-extensions:

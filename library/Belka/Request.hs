@@ -17,7 +17,7 @@ import qualified Iri.Data as J
 import qualified Iri.Rendering.Ptr.Poking as K
 import qualified Ptr.Poking as M
 import qualified Ptr.ByteString as O
-import qualified Belka.Poking as P
+import qualified Belka.Ptr.Poking as P
 
 
 {-| Composable settings of an HTTP request -}

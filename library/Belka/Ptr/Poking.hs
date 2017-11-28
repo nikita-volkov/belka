@@ -1,4 +1,4 @@
-module Belka.Poking
+module Belka.Ptr.Poking
 where
 
 import Belka.Prelude
