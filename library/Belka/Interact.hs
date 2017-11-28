@@ -15,7 +15,7 @@ newtype Interact a =
   Interact (ExceptT G.TransportError (ExceptT Text (ReaderT A.Manager IO)) a)
   deriving (Functor, Applicative, Monad, MonadIO)
 
-request :: B.Request -> C.ParseHead (D.ParseBody body) -> Interact body
+request :: B.Request -> C.ParseHead (D.ParseBody response) -> Interact response
 request (B.Request requestIO) (C.ParseHead (ExceptT (ReaderT parseResponseHeadIO))) =
   Interact $ ExceptT $ ExceptT $ ReaderT $ \ manager ->
   handle (return . Right . Left . G.httpException) $
