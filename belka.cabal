@@ -51,7 +51,7 @@ library
     base64-bytestring ==1.*,
     json-bytes-builder >=0.5 && <0.6,
     -- streaming:
-    potoki >=0.6 && <0.7,
+    potoki >=0.6.1 && <0.7,
     potoki-core >=1.2 && <1.3,
     -- parsing:
     aeson-value-parser >=0.12.2 && <0.13,
