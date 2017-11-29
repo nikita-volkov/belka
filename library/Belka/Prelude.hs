@@ -3,6 +3,8 @@ module Belka.Prelude
   module Exports,
   lowerCaseBytes_iso_8859_1,
   tryError,
+  textString,
+  showText,
 )
 where
 
@@ -61,13 +63,14 @@ import Bug as Exports
 
 -- Utils
 -------------------------
-import qualified Data.ByteString as ByteString
+import qualified Data.Text as A
+import qualified Data.ByteString as B
 
 -- |
 -- Lowercase according to ISO-8859-1.
 lowerCaseBytes_iso_8859_1 :: ByteString -> ByteString
 lowerCaseBytes_iso_8859_1 =
-  ByteString.map byteTransformation
+  B.map byteTransformation
   where
     byteTransformation w =
       if transformable
@@ -82,3 +85,11 @@ lowerCaseBytes_iso_8859_1 =
 tryError :: MonadError e m => m a -> m (Either e a)
 tryError m =
   catchError (liftM Right m) (return . Left)
+
+textString :: Text -> String
+textString =
+  A.unpack
+
+showText :: Show a => a -> Text
+showText =
+  fromString . show

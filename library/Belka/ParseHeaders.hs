@@ -13,5 +13,5 @@ newtype ParseHeaders a =
   deriving (Functor, Applicative, Alternative, Monad, MonadPlus, MonadError Text)
 
 header :: ByteString -> ParseHeaders ByteString
-header =
-  undefined
+header name =
+  ParseHeaders (ReaderT (except . maybe (Left ("Header not found: " <> showText name)) Right . D.lookup name))
