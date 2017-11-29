@@ -94,6 +94,7 @@ test-suite tests
     -- 
     belka,
     iri,
+    potoki,
     -- testing:
     tasty >=0.12 && <0.13,
     tasty-quickcheck >=0.9 && <0.10,
