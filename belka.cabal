@@ -41,7 +41,7 @@ library
   other-modules:
     Belka.Potoki.Consume
     Belka.Ptr.Poking
-    Belka.Ptr.Parse
+    Belka.Attoparsec.ByteString
     Belka.TransportError
     Belka.BytePredicates
     Belka.MonadPlus
@@ -75,7 +75,7 @@ library
     hashable ==1.*,
     case-insensitive ==1.*,
     -- 
-    ptr >=0.16 && <0.17,
+    ptr >=0.16.2 && <0.17,
     semigroups >=0.18 && <0.19,
     mtl ==2.*,
     transformers >=0.4 && <0.6,

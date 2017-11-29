@@ -1,7 +1,7 @@
 module Belka.Prelude
 ( 
   module Exports,
-  lowerCaseBytes_iso_8859_1,
+  lowerCaseBytesInIso8859_1,
   tryError,
   textString,
   showText,
@@ -68,8 +68,8 @@ import qualified Data.ByteString as B
 
 -- |
 -- Lowercase according to ISO-8859-1.
-lowerCaseBytes_iso_8859_1 :: ByteString -> ByteString
-lowerCaseBytes_iso_8859_1 =
+lowerCaseBytesInIso8859_1 :: ByteString -> ByteString
+lowerCaseBytesInIso8859_1 =
   B.map byteTransformation
   where
     byteTransformation w =

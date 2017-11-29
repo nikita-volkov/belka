@@ -1,17 +1,17 @@
-module Belka.Ptr.Parse
+module Belka.Attoparsec.ByteString
 where
 
 import Belka.Prelude hiding (fail)
-import Ptr.Parse
+import Data.Attoparsec.ByteString
 import qualified Belka.BytePredicates as A
 import qualified Belka.MonadPlus as B
 import qualified Data.HashMap.Strict as C
 
 
-contentTypeHeader :: Parse (ByteString, HashMap ByteString ByteString)
+contentTypeHeader :: Parser (ByteString, HashMap ByteString ByteString)
 contentTypeHeader =
   do
-    mimeType <- bytesWhile A.mimeType
+    mimeType <- takeWhile1 A.mimeType
     parameters <- B.foldl (\ table (k, v) -> C.insert k v table) mempty parameter
     return (mimeType, parameters)
   where
@@ -25,22 +25,14 @@ contentTypeHeader =
         value <- token
         return (attribute, value)
 
-token :: Parse ByteString
+token :: Parser ByteString
 token =
-  bytesWhile A.token
+  lowerCaseBytesInIso8859_1 <$> takeWhile1 A.token
 
-equality :: Parse ()
+equality :: Parser Word8
 equality =
-  do
-    byte <- word8
-    if byte == 61
-      then return ()
-      else fail "Not an equality sign"
+  word8 61
 
-semicolon :: Parse ()
+semicolon :: Parser Word8
 semicolon =
-  do
-    byte <- word8
-    if byte == 59
-      then return ()
-      else fail "Not a semicolon"
+  word8 59

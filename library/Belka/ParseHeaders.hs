@@ -6,7 +6,8 @@ import qualified Data.CaseInsensitive as B
 import qualified Data.HashMap.Strict as D
 import qualified Network.HTTP.Client as A
 import qualified Network.HTTP.Types as C
-import qualified Belka.Ptr.Parse as E
+import qualified Belka.Attoparsec.ByteString as E
+import qualified Data.Attoparsec.ByteString as G
 import qualified Ptr.ByteString as F
 
 
@@ -22,7 +23,9 @@ contentType :: ParseHeaders (ByteString, HashMap ByteString ByteString)
 contentType =
   do
     value <- header "content-type"
-    F.parse value (fmap return E.contentTypeHeader) (\ _ -> throwError "Not enough data") throwError
+    case G.parseOnly (E.contentTypeHeader <* G.endOfInput) value of
+      Right result -> return result
+      Left message -> throwError (fromString message)
 
 charset :: ParseHeaders ByteString
 charset =

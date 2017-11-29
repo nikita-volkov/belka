@@ -12,6 +12,8 @@ import qualified Belka.IO as A
 import qualified Belka.Interact as B
 import qualified Belka.Request as C
 import qualified Belka.ParseBody as D
+import qualified Belka.ParseHead as J
+import qualified Belka.ParseHeaders as K
 import qualified Belka.Potoki.Transform as I
 import qualified Iri.QuasiQuoter as E
 import qualified Potoki.Produce as F
@@ -26,6 +28,8 @@ main =
     scrape
     ,
     erroneusResponse
+    ,
+    charset
   ]
 
 erroneusResponse =
@@ -61,3 +65,23 @@ scrape =
           where
             consume =
               fmap Right H.concat
+
+charset =
+  testCase "Charset" $ do
+    result <- G.produceAndConsume produce consume
+    let (Right (Right bodies)) = fmap sequence (sequence result)
+    assertEqual "" ["utf-8"] bodies
+  where
+    produce =
+      F.list [request]
+      where
+        request =
+          C.setIri [E.httpUri|http://google.com|] <>
+          C.setAcceptHeaderToHtml <>
+          C.setUserAgentHeader "Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.113 YaBrowser/17.9.1.785 (beta) Yowser/2.5 Safari/537.36" <>
+          C.setAcceptLanguageHeader ""
+    consume =
+      H.transform transform H.list
+      where
+        transform =
+          I.requestUsingNewManager (J.parseHeaders K.charset >>= return . pure)
