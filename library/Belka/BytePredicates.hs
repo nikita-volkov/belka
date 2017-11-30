@@ -78,3 +78,7 @@ semicolon =
 token :: Predicate
 token =
   mimeType
+
+quotedTokenUnescaped :: Predicate
+quotedTokenUnescaped =
+  mimeType

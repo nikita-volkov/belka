@@ -25,7 +25,7 @@ contentType =
     value <- header "content-type"
     case G.parseOnly (E.contentTypeHeader <* G.endOfInput) value of
       Right result -> return result
-      Left message -> throwError (fromString message)
+      Left message -> throwError (fromString (showString "Content-type parsing: " (showString message (showString ". Input: " (show value)))))
 
 charset :: ParseHeaders ByteString
 charset =
