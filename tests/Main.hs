@@ -16,15 +16,20 @@ import qualified Belka.ParseHead as J
 import qualified Belka.ParseHeaders as K
 import qualified Belka.Potoki.Transform as I
 import qualified Iri.QuasiQuoter as E
+import qualified Iri.Parsing.Text as M
 import qualified Potoki.Produce as F
 import qualified Potoki.IO as G
 import qualified Potoki.Consume as H
+import qualified Potoki.Transform as N
+import qualified Data.Text as L
 
 
 main =
   defaultMain $
   testGroup "All tests" $
   [
+    bombingWithRequests
+    ,
     scrape
     ,
     erroneusResponse
@@ -47,7 +52,7 @@ scrape =
   testCase "Scrape" $ do
     result <- G.produceAndConsume produce consume
     let (Right (Right bodies)) = fmap sequence (sequence result)
-    assertEqual "" [""] bodies
+    assertBool "" ((not . null) bodies)
   where
     produce =
       F.list [request]
@@ -85,3 +90,28 @@ charset =
       where
         transform =
           I.requestUsingNewManager (J.parseHeaders K.charset >>= return . pure)
+
+bombingWithRequests =
+  testCase "Bombing with requests" $ do
+    results <- run
+    assertBool (show results) (isRight results)
+  where
+    getIris =
+      do
+        result <- traverse M.httpIri . L.split (== '\n') <$> L.readFile "samples/iris"
+        either (fail . show) return result
+    getRequests =
+      do
+        iris <- getIris
+        return $ do
+          iri <- iris
+          return $ C.setIri iri
+    run =
+      do
+        requests <- getRequests
+        results <- G.produceAndConsume (F.list requests) (H.transform transform H.list)
+        either (fail . showString "Parsing error: " . show) (return . sequence) (sequence results)
+      where
+        transform =
+          N.concurrently 30 $
+          I.requestUsingNewManager (J.parseHeaders K.contentType >>= return . pure)
