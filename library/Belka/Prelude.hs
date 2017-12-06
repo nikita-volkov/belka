@@ -40,6 +40,7 @@ import Data.Semigroup as Exports
 -- unordered-containers
 -------------------------
 import Data.HashMap.Strict as Exports (HashMap)
+import Data.HashSet as Exports (HashSet)
 
 -- bytestring
 -------------------------
@@ -55,7 +56,7 @@ import Data.Hashable as Exports
 
 -- iri
 -------------------------
-import Iri.Data as Exports (Iri)
+import Iri.Data as Exports (Iri, HttpIri)
 
 -- bug
 -------------------------
@@ -65,6 +66,7 @@ import Bug as Exports
 -------------------------
 import qualified Data.Text as A
 import qualified Data.ByteString as B
+import qualified Network.CURL730 as C
 
 -- |
 -- Lowercase according to ISO-8859-1.

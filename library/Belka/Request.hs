@@ -1,9 +1,8 @@
 module Belka.Request
 where
 
-import Belka.Prelude
-import qualified Network.HTTP.Client as A
-import qualified Data.CaseInsensitive as B
+import Belka.Prelude hiding (option, Option)
+import qualified Network.CURL730 as A
 import qualified Potoki.Produce as C
 import qualified Potoki.Core.Produce as C
 import qualified Potoki.Core.Fetch as I
@@ -12,147 +11,160 @@ import qualified JSONBytesBuilder.Builder as E
 import qualified JSONBytesBuilder.ByteString.Builder as G
 import qualified Data.ByteString as L
 import qualified Data.ByteString.Builder as F
+import qualified Data.ByteString.Char8 as R
 import qualified Data.Text as H
 import qualified Iri.Data as J
-import qualified Iri.Rendering.Ptr.Poking as K
+import qualified Iri.Rendering.ByteString as K
 import qualified Ptr.Poking as M
 import qualified Ptr.ByteString as O
 import qualified Belka.Ptr.Poking as P
 
 
-{-| Composable settings of an HTTP request -}
-newtype Request =
-  Request (A.Request -> IO (A.Request, IO ()))
+data Request =
+  Request ![A.CURLoption] !(IO ([A.CURLoption], IO ()))
 
-instance Semigroup Request where
-  (<>) (Request leftIO) (Request rightIO) =
-    Request $ \ !hcRequest ->
-    do
-      (leftRequest, leftCleanUp) <- leftIO hcRequest
-      (rightRequest, rightCleanUp) <- rightIO leftRequest
-      return (rightRequest, leftCleanUp >> rightCleanUp)
+request :: Redirects -> Timeout -> Method -> Iri -> [Header] -> Body -> Request
+request (Redirects redirectsOptions) (Timeout timeoutOptions) (Method methodOption) iri headers (Body bodyIO) =
+  Request pureOptions bodyIO
+  where
+    pureOptions =
+      redirectsOptions <>
+      timeoutOptions <>
+      [iriOption, headersOption, methodOption]
+      where
+        iriOption =
+          A.CURLOPT_URL string
+          where
+            string =
+              R.unpack (K.uri iri)
+        headersOption =
+          A.CURLOPT_HTTPHEADER stringList
+          where
+            stringList =
+              fmap (\ (Header x) -> x) headers
 
-instance Monoid Request where
-  mempty =
-    Request (\ hcRequest -> return (hcRequest, return ()))
-  mappend =
-    (<>)
 
-endo :: (A.Request -> A.Request) -> Request
-endo endo =
-  Request $ \ hcRequest -> return (endo hcRequest, return ())
+newtype Redirects =
+  Redirects [A.CURLoption]
+
+noRedirects :: Redirects
+noRedirects =
+  Redirects [A.CURLOPT_FOLLOWLOCATION False]
+
+redirects :: Int -> Redirects
+redirects amount =
+  Redirects [A.CURLOPT_FOLLOWLOCATION True, A.CURLOPT_MAXREDIRS (fromIntegral amount)]
+
+
+newtype Timeout =
+  Timeout [A.CURLoption]
+
+noTimeout :: Timeout
+noTimeout =
+  Timeout []
 
 {-| Set timeout in millis -}
-setTimeout :: Int -> Request
-setTimeout timeout =
-  endo (\ x -> x {A.responseTimeout = A.responseTimeoutMicro (timeout * 1000)})
+millisTimeout :: Int -> Timeout
+millisTimeout millis =
+  Timeout [A.CURLOPT_TIMEOUT_MS (fromIntegral millis)]
 
-setHeader :: ByteString -> ByteString -> Request
-setHeader name value =
-  endo (\ x -> x {A.requestHeaders = newHeaders (A.requestHeaders x)})
-  where
-    newHeaders oldHeaders =
-      (B.mk name, value) : oldHeaders
 
-setAcceptHeader :: ByteString -> Request
-setAcceptHeader value =
-  setHeader "accept" value
+newtype Method =
+  Method A.CURLoption
 
-setAcceptLanguageHeader :: ByteString -> Request
-setAcceptLanguageHeader =
-  setHeader "accept-language"
+method :: ByteString -> Method
+method method =
+  Method (A.CURLOPT_CUSTOMREQUEST (R.unpack method))
 
-setContentTypeHeader :: ByteString -> Request
-setContentTypeHeader value =
-  setHeader "content-type" value
+headMethod :: Method
+headMethod =
+  method "head"
 
-setBasicAuthHeader :: Text -> Text -> Request
-setBasicAuthHeader user password =
-  setHeader "authorization" (O.poking (P.basicAuth user password))
+getMethod :: Method
+getMethod =
+  method "get"
 
-setAcceptHeaderToJson :: Request
-setAcceptHeaderToJson =
-  setAcceptHeader "application/json"
+postMethod :: Method
+postMethod =
+  method "post"
 
-setAcceptHeaderToHtml :: Request
-setAcceptHeaderToHtml =
-  setAcceptHeader "text/html"
+putMethod :: Method
+putMethod =
+  method "put"
 
-setContentTypeHeaderToJson :: Request
-setContentTypeHeaderToJson =
-  setContentTypeHeader "application/json"
+deleteMethod :: Method
+deleteMethod =
+  method "delete"
 
-setUserAgentHeader :: ByteString -> Request
-setUserAgentHeader =
-  setHeader "user-agent"
 
-setIri :: J.HttpIri -> Request
-setIri (J.HttpIri (J.Security secure) host port path query fragment) =
-  endo $ \ request ->
-    request {
-      A.secure = secure,
-      A.host = preparedHost,
-      A.port = preparedPort,
-      A.path = preparedPath,
-      A.queryString = preparedQuery
-    }
-  where
-    preparedHost =
-      O.poking (K.host host)
-    preparedPort =
-      case port of
-        J.PresentPort value -> fromIntegral value
-        J.MissingPort -> if secure then 443 else 80
-    preparedPath =
-      O.poking (M.asciiChar '/' <> K.path path)
-    preparedQuery =
-      O.poking $
-      case K.query query of
-        query -> if M.null query then mempty else M.asciiChar '?' <> query
+newtype Header =
+  Header String
 
-setMethod :: ByteString -> Request
-setMethod method =
-  endo (\ x -> x {A.method = method})
+header :: ByteString -> ByteString -> Header
+header name value =
+  Header (R.unpack name <> ": " <> R.unpack value)
 
-setMethodToGet :: Request
-setMethodToGet =
-  setMethod "get"
+acceptHeader :: ByteString -> Header
+acceptHeader value =
+  header "accept" value
 
-setMethodToPost :: Request
-setMethodToPost =
-  setMethod "post"
+jsonAcceptHeader :: Header
+jsonAcceptHeader =
+  acceptHeader "application/json"
 
-setMethodToDelete :: Request
-setMethodToDelete =
-  setMethod "delete"
+htmlAcceptHeader :: Header
+htmlAcceptHeader =
+  acceptHeader "text/html"
 
-setMethodToHead :: Request
-setMethodToHead =
-  setMethod "head"
+acceptLanguageHeader :: ByteString -> Header
+acceptLanguageHeader =
+  header "accept-language"
 
-setBody :: ByteString -> Request
-setBody bytes =
-  endo $ \ request ->
-  request { A.requestBody = A.RequestBodyBS bytes }
+contentTypeHeader :: ByteString -> Header
+contentTypeHeader value =
+  header "content-type" value
 
-produceBody :: C.Produce ByteString -> Request
+jsonContentTypeHeader :: Header
+jsonContentTypeHeader =
+  contentTypeHeader "application/json"
+
+basicAuthHeader :: Text -> Text -> Header
+basicAuthHeader user password =
+  header "authorization" (O.poking (P.basicAuth user password))
+
+userAgentHeader :: ByteString -> Header
+userAgentHeader =
+  header "user-agent"
+
+
+newtype Body =
+  Body (IO ([A.CURLoption], IO ()))
+
+produceBody :: C.Produce ByteString -> Body
 produceBody (C.Produce produceIO) =
-  Request $ \ hcRequest ->
-  do
-    (fetch, cleanUp) <- produceIO
-    return
-      ((,)
-        (hcRequest { A.requestBody = A.RequestBodyStreamChunked (givesPopper fetch) })
-        cleanUp)
-  where
-    givesPopper (I.Fetch fetchIO) takesPopper =
-      takesPopper (fetchIO mempty id)
-
-buildBody :: F.Builder -> Request
-buildBody builder =
-  endo $ \ request ->
-  request { A.requestBody = A.RequestBodyLBS (F.toLazyByteString builder) }
-
-buildJsonBody :: E.Literal -> Request
-buildJsonBody builder =
-  buildBody (G.jsonLiteral builder) <> setContentTypeHeaderToJson
+  Body $ do
+    (I.Fetch fetchIO, releaseIO) <- produceIO
+    unconsumedRef <- newIORef mempty
+    let
+      readFunction maxSize =
+        do
+          unconsumed <- readIORef unconsumedRef
+          if L.null unconsumed
+            then 
+              fix $ \ loop ->
+              join $
+              fetchIO
+                (return (A.CURL_READFUNC_OK mempty))
+                (\ bytes ->
+                  if L.null bytes
+                    then loop
+                    else do
+                      let (left, right) = L.splitAt maxSize bytes
+                      writeIORef unconsumedRef right
+                      return (A.CURL_READFUNC_OK bytes))
+            else
+              do
+                let (left, right) = L.splitAt maxSize unconsumed
+                writeIORef unconsumedRef right
+                return (A.CURL_READFUNC_OK unconsumed)
+    return ([A.CURLOPT_READFUNCTION (Just readFunction)], releaseIO)
