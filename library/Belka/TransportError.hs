@@ -2,13 +2,13 @@ module Belka.TransportError
 where
 
 import Belka.Prelude
-import qualified Network.HTTP.Client as A
+import qualified Network.CURL730 as A
 
 
 data TransportError =
   TimeoutTransportError |
   ConnectionTransportError IOErrorType |
-  UnclassifiedTransportError A.HttpException
+  UnclassifiedTransportError A.CURLE
   deriving (Show)
 
 someException :: TransportError -> SomeException -> TransportError

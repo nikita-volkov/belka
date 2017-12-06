@@ -32,15 +32,16 @@ library
     library
   exposed-modules:
     Belka.Request
-    -- Belka.ParseHead
+    Belka.ParseHead
     Belka.ParseBody
     -- Belka.ParseHeaders
-    -- Belka.Interact
+    Belka.Interact
     -- Belka.IO
     -- Belka.Potoki.Transform
   other-modules:
     Belka.Curl
     Belka.Curl.Options
+    Belka.Curl.Potoki.Produce
     -- Belka.Potoki.Consume
     -- Belka.Ptr.Poking
     -- Belka.Attoparsec.ByteString
