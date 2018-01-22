@@ -2,6 +2,8 @@ name:
   belka
 version:
   0.8
+synopsis:
+  HTTP client DSL
 homepage:
   https://github.com/nikita-volkov/belka
 bug-reports:
